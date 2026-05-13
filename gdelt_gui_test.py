@@ -377,8 +377,8 @@ class GdeltApp:
                 self._on_search_finished(success=False, msg=cancel_msg or "Search cancelled due to rate limit.")
 
         tk.Button(btn_frame, text="Retry Now", command=retry_now).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="Wait 1 Min", command=lambda: wait_and_retry(1)).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Wait 5 Min", command=lambda: wait_and_retry(5)).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Wait 15 Min", command=lambda: wait_and_retry(15)).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Stop", command=cancel).pack(side=tk.LEFT, padx=5)
 
     def _show_retry_dialog(self, message, callback, args=None, cancel_success=False, cancel_msg=None):
@@ -411,8 +411,8 @@ class GdeltApp:
                 self._on_search_finished(success=False, msg=cancel_msg or "Search cancelled due to an error.")
 
         tk.Button(btn_frame, text="Retry Now", command=retry_now).pack(side=tk.LEFT, padx=5)
+        tk.Button(btn_frame, text="Wait 1 Min", command=lambda: wait_and_retry(1)).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Wait 5 Min", command=lambda: wait_and_retry(5)).pack(side=tk.LEFT, padx=5)
-        tk.Button(btn_frame, text="Wait 15 Min", command=lambda: wait_and_retry(15)).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Cancel", command=cancel).pack(side=tk.LEFT, padx=5)
 
     def _sleep_before_request(self, seconds, request_type):
