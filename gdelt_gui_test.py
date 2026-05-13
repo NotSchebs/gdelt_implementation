@@ -645,14 +645,9 @@ class GdeltApp:
 
             from dashboard_gui import launch_dashboard
 
-            threading.Thread(
-                target=launch_dashboard,
-                args=(timeline_path, articles_path, keyword),
-                daemon=True
-            ).start()
-
-            self.log("Dashboard launched. Closing search window...")
-            self.root.quit()
+            self.log("Closing search window and launching dashboard...")
+            self.root.destroy()
+            launch_dashboard(timeline_path, articles_path, keyword)
 
         except Exception as e:
             messagebox.showerror("Dashboard Error", f"Failed to open dashboard: {str(e)}")
