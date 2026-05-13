@@ -46,3 +46,4 @@ traitlets==5.14.3
 typing_extensions==4.15.0
 urllib3==2.6.3
 wcwidth==0.6.0
+statsmodels==0.14.6

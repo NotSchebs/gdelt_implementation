@@ -142,6 +142,9 @@ class GdeltApp:
         self.export_btn = tk.Button(btn_frame, text="Export CSV", command=self.export_csv, width=10, state=tk.DISABLED)
         self.export_btn.pack(side=tk.LEFT, padx=5)
 
+        self.analyze_btn = tk.Button(btn_frame, text="Analyze", command=self.open_dashboard, width=10, state=tk.DISABLED, bg="orange")
+        self.analyze_btn.pack(side=tk.LEFT, padx=5)
+
         # Plot Area
         self.plot_frame = tk.Frame(self.root, bg="white", bd=2, relief=tk.SUNKEN)
         self.plot_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -550,6 +553,7 @@ class GdeltApp:
             
             if success and self.df is not None:
                 self.export_btn.config(state=tk.NORMAL)
+                self.analyze_btn.config(state=tk.NORMAL)
                 self._plot_data()
         
         self.root.after(0, update_gui)
@@ -617,6 +621,41 @@ class GdeltApp:
                     messagebox.showinfo("Export Success", "Timeline data exported successfully! It is now ready for Power BI.")
             except Exception as e:
                 messagebox.showerror("Export Error", f"Failed to save file:\n{str(e)}")
+
+    def open_dashboard(self):
+        if self.df is None or self.df.empty:
+            messagebox.showwarning("Analysis Error", "No timeline data to analyze.")
+            return
+
+        try:
+            keyword = self.keyword_entry.get().strip()
+            temp_dir = os.path.join(os.path.expanduser("~"), ".gdelt_temp")
+            os.makedirs(temp_dir, exist_ok=True)
+
+            timeline_path = os.path.join(temp_dir, "timeline_data.csv")
+            articles_path = None
+
+            self.df.to_csv(timeline_path, index=False)
+            self.log(f"Temporary timeline data saved to: {timeline_path}")
+
+            if self.articles_df is not None and not self.articles_df.empty:
+                articles_path = os.path.join(temp_dir, "articles_data.csv")
+                self.articles_df.to_csv(articles_path, index=False)
+                self.log(f"Temporary articles data saved to: {articles_path}")
+
+            from dashboard_gui import launch_dashboard
+
+            threading.Thread(
+                target=launch_dashboard,
+                args=(timeline_path, articles_path, keyword),
+                daemon=True
+            ).start()
+
+            self.log("Dashboard launched. Closing search window...")
+            self.root.quit()
+
+        except Exception as e:
+            messagebox.showerror("Dashboard Error", f"Failed to open dashboard: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()
