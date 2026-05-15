@@ -17,6 +17,9 @@ class DashboardApp:
         self.root = root
         self.root.title(f"GDELT Analysis Dashboard - {keyword}")
         self.root.geometry("1200x800")
+        self.root.minsize(900, 600)
+        self.root.rowconfigure(1, weight=1)
+        self.root.columnconfigure(0, weight=1)
 
         self.timeline_df = timeline_data.copy()
         self.articles_df = articles_data.copy() if articles_data is not None else None
@@ -31,8 +34,9 @@ class DashboardApp:
     def _create_ui(self):
         # Control Panel
         control_frame = tk.Frame(self.root, padx=10, pady=10, bg="lightgray")
-        control_frame.pack(side=tk.TOP, fill=tk.X)
+        control_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
 
+        # ############# Uncomment for analysis controls
         tk.Label(control_frame, text="ARIMA Order (p,d,q):", bg="lightgray").pack(side=tk.LEFT, padx=5)
 
         self.p_var = tk.StringVar(value="1")
@@ -59,12 +63,13 @@ class DashboardApp:
         tk.Button(control_frame, text="Export Forecast", command=self.export_forecast, bg="blue", fg="white").pack(
             side=tk.LEFT, padx=5
         )
+        # ############# End analysis controls
 
         tk.Button(control_frame, text="Back to Search", command=self.close_app).pack(side=tk.LEFT, padx=5)
 
         # Notebook for tabs
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.notebook.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
 
         # Tab 1: Timeline Plot
         self.timeline_frame = tk.Frame(self.notebook)
@@ -74,6 +79,7 @@ class DashboardApp:
         self.canvas_timeline = FigureCanvasTkAgg(self.fig_timeline, master=self.timeline_frame)
         self.canvas_timeline.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+        # ############# Analysis tabs - uncomment for forecast/diagnostics
         # Tab 2: Forecast Plot
         self.forecast_frame = tk.Frame(self.notebook)
         self.notebook.add(self.forecast_frame, text="Forecast")
@@ -92,7 +98,7 @@ class DashboardApp:
 
         # Status Log
         log_frame = tk.Frame(self.root)
-        log_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=10)
+        log_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
 
         tk.Label(log_frame, text="Status Log:").pack(side=tk.TOP, anchor=tk.W)
         self.log_text = tk.Text(log_frame, height=4, state=tk.DISABLED)
@@ -100,12 +106,33 @@ class DashboardApp:
 
         # Draw initial timeline
         self._plot_timeline()
+        self.root.bind("<Configure>", self._schedule_resize)
 
     def log(self, message):
         self.log_text.config(state=tk.NORMAL)
         self.log_text.insert(tk.END, f"{message}\n")
         self.log_text.see(tk.END)
         self.log_text.config(state=tk.DISABLED)
+
+    def _schedule_resize(self, event):
+        if getattr(self, "_resize_after_id", None):
+            self.root.after_cancel(self._resize_after_id)
+        self._resize_after_id = self.root.after(100, self._resize_figures)
+
+    def _resize_figures(self):
+        for fig, canvas in [
+            (self.fig_timeline, self.canvas_timeline),
+            (self.fig_forecast, self.canvas_forecast),
+            (self.fig_diag, self.canvas_diag),
+        ]:
+            widget = canvas.get_tk_widget()
+            width = widget.winfo_width()
+            height = widget.winfo_height()
+            if width > 20 and height > 20:
+                dpi = fig.get_dpi()
+                fig.set_size_inches(width / dpi, height / dpi)
+                fig.tight_layout()
+                canvas.draw()
 
     def _plot_timeline(self):
         self.ax_timeline.clear()
@@ -133,6 +160,7 @@ class DashboardApp:
             self.canvas_timeline.draw()
             self.log("Timeline plot displayed.")
 
+    # ############# Analysis functions - uncomment for ARIMA modeling and diagnostics
     def run_arima(self):
         try:
             p = int(self.p_var.get())
