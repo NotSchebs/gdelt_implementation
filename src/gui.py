@@ -1,3 +1,4 @@
+from logging import root
 import os
 import threading
 import time
@@ -15,6 +16,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from .constants import TIMELINE_MODES
 from .gdelt_api import GdeltApiClient
 from .plotter import TimelinePlotter
+from .filters import FiltersWindow
 
 
 class GdeltApp:
@@ -46,17 +48,17 @@ class GdeltApp:
         self.fetch_articles_check = tk.Checkbutton(control_frame, text="Fetch Articles", variable=self.fetch_articles_var)
         self.fetch_articles_check.grid(row=1, column=0, sticky="e", padx=10, pady=5)
 
-        tk.Label(control_frame, text="Time Span:").grid(row=2, column=0, sticky="w", padx=(0, 5), pady=5)
+        tk.Label(control_frame, text="Timeline Mode:").grid(row=2, column=0, sticky="w", padx=(0, 5), pady=5)
+        self.timeline_mode_var = tk.StringVar(value="timelinevol")
+        self.timeline_mode_menu = ttk.Combobox(control_frame, textvariable=self.timeline_mode_var, values=TIMELINE_MODES, state="readonly", width=15)
+        self.timeline_mode_menu.grid(row=2, column=0, sticky="e", padx=(0, 10), pady=5)
+
+        tk.Label(control_frame, text="Time Span:").grid(row=3, column=0, sticky="w", padx=(0, 5), pady=5)
         self.time_span_var = tk.StringVar(value="Last Month")
         time_spans = ["Last Week", "Last Month", "2020 - Yesterday", "Custom"]
         self.time_span_menu = ttk.Combobox(control_frame, textvariable=self.time_span_var, values=time_spans, state="readonly", width=15)
-        self.time_span_menu.grid(row=2, column=0, sticky="e", padx=(0, 10), pady=5)
+        self.time_span_menu.grid(row=3, column=0, sticky="e", padx=(0, 10), pady=5)
         self.time_span_menu.bind("<<ComboboxSelected>>", self._on_time_span_change)
-
-        tk.Label(control_frame, text="Timeline Mode:").grid(row=3, column=0, sticky="w", padx=(0, 5), pady=5)
-        self.timeline_mode_var = tk.StringVar(value="timelinevol")
-        self.timeline_mode_menu = ttk.Combobox(control_frame, textvariable=self.timeline_mode_var, values=TIMELINE_MODES, state="readonly", width=22)
-        self.timeline_mode_menu.grid(row=3, column=0, sticky="e", padx=(0, 10), pady=5)
 
         self.date_frame = tk.Frame(control_frame)
         self.date_frame.grid(row=4, column=0)
@@ -68,8 +70,13 @@ class GdeltApp:
         self.end_date_entry.pack(side=tk.LEFT, padx=5)
         self._update_date_entries_state()
 
+    
+        tk.Button(control_frame, text="Filters", command=self._filters_window, width=20).grid(
+            row=2, column=1, sticky="ew", padx=(0, 5), pady=5
+            )
+
         btn_frame = tk.Frame(control_frame)
-        btn_frame.grid(row=0, column=2, rowspan=1, padx=10)
+        btn_frame.grid(row=0, column=1, rowspan=1, padx=10)
         self.search_btn = tk.Button(btn_frame, text="Search", command=self.start_search, width=10, bg="green")
         self.search_btn.pack(side=tk.LEFT, padx=5)
         self.stop_btn = tk.Button(btn_frame, text="Stop", command=self.stop_search, width=10, state=tk.DISABLED, bg="red")
@@ -97,6 +104,10 @@ class GdeltApp:
         state = tk.NORMAL if self.time_span_var.get() == "Custom" else tk.DISABLED
         self.start_date_entry.config(state=state)
         self.end_date_entry.config(state=state)
+    
+    def _filters_window(self) -> None:
+        FiltersWindow(self.root)
+
 
     def _confirm_article_range_warning(self, days: int) -> bool:
         dialog = tk.Toplevel(self.root)
