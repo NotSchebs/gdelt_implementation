@@ -4,7 +4,7 @@ import time
 import subprocess
 
 # You can change this to "gdelt_gui_test.py" or whatever file you are currently editing
-FILE_TO_WATCH = "gdelt_gui_test.py"
+FILE_TO_WATCH = "gdelt_gui.py"
 SRC_DIR = "src"
 
 def get_mtime():
