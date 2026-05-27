@@ -48,9 +48,9 @@ class DialogManager:
         self.root.wait_window(dialog)
         return result["continue"]
     
-    def show_error_dialog(self, message: str, callback: Callable, args: Tuple,
-                      cancel_success: bool, cancel_msg: Optional[str],
-                      stop_event: threading.Event) -> None:
+    def show_error_dialog(self, message: str, callback: Callable, args: Tuple, cancel_success: bool,
+                cancel_msg: Optional[str], stop_event: threading.Event, on_finished: Optional[Callable] = None,
+                ) -> None:
         """Show error dialog with retry options."""
         dialog = tk.Toplevel(self.root)
         dialog.title("API Error")
@@ -82,7 +82,9 @@ class DialogManager:
                 msg = cancel_msg or "Timeline fetched; article retrieval cancelled."
             else:
                 msg = cancel_msg or "Search cancelled due to an error."
-            callback(-1, msg)  # Signal completion
+
+            if on_finished:
+                on_finished(-1, msg)
 
         tk.Button(btn_frame, text="Retry Now", command=retry_now).pack(side=tk.LEFT, padx=5)
         tk.Button(btn_frame, text="Wait 1 Min", command=lambda: wait_and_retry(1)).pack(side=tk.LEFT, padx=5)
