@@ -48,8 +48,9 @@ class DialogManager:
         self.root.wait_window(dialog)
         return result["continue"]
     
-    def show_error_dialog(self, message: str, callback: Callable, args: Tuple, 
-                         cancel_success: bool, cancel_msg: Optional[str]) -> None:
+    def show_error_dialog(self, message: str, callback: Callable, args: Tuple,
+                      cancel_success: bool, cancel_msg: Optional[str],
+                      stop_event: threading.Event) -> None:
         """Show error dialog with retry options."""
         dialog = tk.Toplevel(self.root)
         dialog.title("API Error")
@@ -69,7 +70,11 @@ class DialogManager:
         def wait_and_retry(minutes: int) -> None:
             dialog.destroy()
             self.logger.log(f"Waiting for {minutes} minutes before retrying...")
-            threading.Thread(target=self._wait_timer, args=(minutes, callback, args), daemon=True).start()
+            threading.Thread(
+                target=self._wait_timer,
+                args=(minutes, callback, args, stop_event),
+                daemon=True,
+            ).start()
 
         def cancel() -> None:
             dialog.destroy()

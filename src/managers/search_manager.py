@@ -95,7 +95,14 @@ class SearchManager:
                      cancel_success: bool, cancel_msg: str, 
                      on_finished: Callable) -> None:
         """Handle API errors with retry dialog."""
-        self.dialog_manager.show_error_dialog(message, callback, args, cancel_success, cancel_msg)
+        self.dialog_manager.show_error_dialog(
+                message,
+                callback,
+                args,
+                cancel_success,
+                cancel_msg,
+                self.stop_event,
+            )
     
     def _sleep_before_request(self, seconds: int, request_type: str) -> None:
         """Sleep before API request with stop check."""
