@@ -6,19 +6,21 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..core.constants import TIMELINE_MODES
+from .tooltip import ToolTip
 
 
 class ControlPanelUI:
     """Builds and manages the control panel UI."""
     
     def __init__(self, root: tk.Tk, on_search: Callable, on_stop: Callable, 
-                 on_export: Callable, on_filters: Callable, 
+                 on_export: Callable, on_filters: Callable, on_analyse: Callable,
                  on_time_span_change: Callable):
         self.root = root
         self.on_search = on_search
         self.on_stop = on_stop
         self.on_export = on_export
         self.on_filters = on_filters
+        self.on_analyse = on_analyse 
         self.on_time_span_change = on_time_span_change
         
         # UI elements
@@ -53,7 +55,32 @@ class ControlPanelUI:
         self.fetch_articles_check.grid(row=1, column=0, sticky="e", padx=10, pady=5)
 
         # Timeline mode
-        tk.Label(control_frame, text="Timeline Mode:").grid(row=2, column=0, sticky="w", padx=(0, 5), pady=5)
+        timeline_label = tk.Label(control_frame, text="Timeline Mode:")
+        timeline_label.grid(row=2, column=0, sticky="w", padx=(0, 5), pady=5)
+
+        help_label = tk.Label(
+            control_frame,
+            text="ⓘ",
+            fg="white",
+            cursor="hand2"
+        )
+
+        help_label.grid(row=2, column=0, sticky="w", padx=(110, 0))
+
+        ToolTip(
+            help_label,
+            "timelinevol:\nNormalized volume of mentions over time\n\n"
+
+            "timelinevolraw:\nRaw article mention counts over time\n\n"
+
+            "timelinelang:\nBreakdown of coverage by language\n\n"
+
+            "timelinesourcecountry:\nCoverage grouped by source country\n\n"
+
+            "timelinetone:\nSentiment and emotional tone over time"
+        )
+
+
         self.timeline_mode_var = tk.StringVar(value="timelinevol")
         self.timeline_mode_menu = ttk.Combobox(control_frame, textvariable=self.timeline_mode_var, 
                                               values=TIMELINE_MODES, state="readonly", width=15)
@@ -81,6 +108,11 @@ class ControlPanelUI:
         # Filters button
         tk.Button(control_frame, text="Filters", command=self.on_filters, width=20).grid(
             row=2, column=1, sticky="ew", padx=(0, 5), pady=5
+        )
+
+        # Analyse button
+        tk.Button(control_frame, text="Analyse", command=self.on_analyse, width=20).grid(
+            row=3, column=1, sticky="ew", padx=(0, 5), pady=5
         )
 
         # Search/Stop/Export buttons

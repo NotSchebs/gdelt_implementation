@@ -8,6 +8,8 @@ from tkinter import messagebox
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from src.core.analysis import AnalysisWindow
+
 from .gdelt_api import GdeltApiClient
 from .plotter import TimelinePlotter
 from .filters import FiltersWindow
@@ -44,6 +46,7 @@ class GdeltApp:
             on_stop=self.stop_search,
             on_export=self.export_csv,
             on_filters=self._filters_window,
+            on_analyse=self._analysis_window,  # Placeholder for future analysis feature
             on_time_span_change=self._on_time_span_change
         )
         
@@ -81,6 +84,10 @@ class GdeltApp:
     def _filters_window(self) -> None:
         """Open filters window."""
         FiltersWindow(self.root)
+
+    def _analysis_window(self) -> None:
+        """Open analysis window."""
+        AnalysisWindow(self.root)
 
     def start_search(self) -> None:
         """Validate input and start search."""

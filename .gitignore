@@ -1,1 +1,85 @@
-venv
+# =========================================
+# Python
+# =========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# =========================================
+# Jupyter / Data Science
+# =========================================
+.ipynb_checkpoints/
+
+# Large datasets (optional)
+data/
+datasets/
+
+# Model files (optional)
+models/
+*.pkl
+*.joblib
+*.h5
+
+# Plot outputs
+figures/
+plots/
+*.png
+*.pdf
+
+# =========================================
+# Testing / coverage
+# =========================================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================================
+# Type checking / lint caches
+# =========================================
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# =========================================
+# Environment variables / secrets
+# =========================================
+.env
+.env.local
+
+# =========================================
+# Logs
+# =========================================
+*.log
+
+# =========================================
+# IDE / Editor
+# =========================================
+.vscode/
+.idea/
+
+# =========================================
+# OS files
+# =========================================
+.DS_Store
+Thumbs.db
+
+# =========================================
+# Tkinter / GUI temp stuff
+# =========================================
+*.bak
+*.tmp
