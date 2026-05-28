@@ -48,7 +48,23 @@ class ControlPanelUI:
         self.keyword_entry.insert(0, "quantum computing")
 
         # Articles checkbox
-        tk.Label(control_frame, text="Include Articles:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        timeline_label = tk.Label(control_frame, text="Article sample:")
+        timeline_label.grid(row=1, column=0, sticky="w", padx=(0, 5), pady=5)
+
+        help_label = tk.Label(
+            control_frame,
+            text="ⓘ",
+            fg="white",
+            cursor="hand2"
+        )
+
+        help_label.grid(row=1, column=0, sticky="w", padx=(110, 0))
+
+        ToolTip(
+            help_label,
+            "The GDELT Event Database provides a sample of articles that mention the keyword(s) in the query. \n\n"
+            "Checking this box will fetch and display a sample of maximum 250 articles in the article panel. Unchecking it will hide the article panel and only show timeline visualizations based on the full dataset."
+        )
         self.fetch_articles_var = tk.BooleanVar(value=False)
         self.fetch_articles_check = tk.Checkbutton(control_frame, text="Fetch Articles", 
                                                    variable=self.fetch_articles_var)
@@ -79,8 +95,6 @@ class ControlPanelUI:
 
             "timelinetone:\nSentiment and emotional tone over time"
         )
-
-
         self.timeline_mode_var = tk.StringVar(value="timelinevol")
         self.timeline_mode_menu = ttk.Combobox(control_frame, textvariable=self.timeline_mode_var, 
                                               values=TIMELINE_MODES, state="readonly", width=15)
@@ -105,14 +119,69 @@ class ControlPanelUI:
         self.end_date_entry = tk.Entry(self.date_frame, width=12)
         self.end_date_entry.pack(side=tk.LEFT, padx=5)
 
-        # Filters button
-        tk.Button(control_frame, text="Filters", command=self.on_filters, width=20).grid(
-            row=2, column=1, sticky="ew", padx=(0, 5), pady=5
+
+        # Filters row
+
+        filters_frame = tk.Frame(control_frame)
+        filters_frame.grid(row=1, column=1, sticky="w", padx=(15, 0))
+
+        filters_btn = tk.Button(
+            filters_frame,
+            text="Filters",
+            command=self.on_filters,
+            width=12
         )
 
-        # Analyse button
-        tk.Button(control_frame, text="Analyse", command=self.on_analyse, width=20).grid(
-            row=3, column=1, sticky="ew", padx=(0, 5), pady=5
+        filters_btn.pack(side=tk.LEFT)
+
+        filters_help = tk.Label(
+            filters_frame,
+            text="ⓘ",
+            fg="white",
+            cursor="hand2",
+            font=("Arial", 10, "bold")
+        )
+
+        filters_help.pack(side=tk.LEFT, padx=(6, 0))
+
+        ToolTip(
+            filters_help,
+            "Open advanced filtering options.\n\n"
+            "Filter by language, source,\n"
+            "country, tone, and metadata."
+        )
+
+        # Analyse button 
+        analyse_frame = tk.Frame(control_frame)
+        analyse_frame.grid(row=5, column=0, columnspan=2, pady=(15, 0))
+
+        analyse_btn = tk.Button(
+            analyse_frame,
+            text="Analyse",
+            command=self.on_analyse,
+            width=28,
+            height=2,
+            font=("Arial", 11, "bold")
+        )
+
+        analyse_btn.pack(side=tk.LEFT)
+
+        analyse_help = tk.Label(
+            analyse_frame,
+            text="ⓘ",
+            fg="white",
+            cursor="hand2",
+            font=("Arial", 10, "bold")
+        )
+
+        analyse_help.pack(side=tk.LEFT, padx=(8, 0))
+
+        ToolTip(
+            analyse_help,
+            "Run deeper analysis on the\n"
+            "returned GDELT data.\n\n"
+            "Includes trends, sentiment,\n"
+            "patterns, and statistics."
         )
 
         # Search/Stop/Export buttons
