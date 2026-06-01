@@ -16,7 +16,7 @@ class DataManager:
         self.timeline_df = None
         self.articles_df = None
     
-    def prepare_timeline_df(self, timeline_data: pd.DataFrame, timeline_mode: str) -> pd.DataFrame:
+    def prepare_timeline_df(self, timeline_data: pd.DataFrame, timeline_mode: str, filters: dict | None = None) -> pd.DataFrame:
         """Process raw timeline data into usable format."""
         df = pd.DataFrame(timeline_data)
         if df.empty:
@@ -44,7 +44,36 @@ class DataManager:
             raise ValueError("No numeric timeline columns found for the selected breakdown mode.")
 
         grouped = df.groupby("date")[numeric_cols].sum().reset_index()
-        return grouped.sort_values("date")
+        grouped = grouped.sort_values("date")
+
+        # If this is a breakdown by language or source country, optionally reduce columns
+        if timeline_mode in ("timelinelang", "timelinesourcecountry") and filters:
+            keep_cols = ["date"]
+            # countries filter contains FIPS codes (from FiltersWindow)
+            country_filters = [c.upper() for c in (filters.get('countries') or [])]
+            lang_filters = [l.lower() for l in (filters.get('languages') or [])]
+
+            for col in grouped.columns:
+                if col == 'date':
+                    continue
+                # match country codes (case-insensitive substring) or language codes
+                col_norm = str(col).strip()
+                if country_filters:
+                    for cf in country_filters:
+                        if cf and cf.lower() in col_norm.lower():
+                            keep_cols.append(col)
+                            break
+                if lang_filters and col not in keep_cols:
+                    for lf in lang_filters:
+                        if lf and lf.lower() in col_norm.lower():
+                            keep_cols.append(col)
+                            break
+
+            # If filters were provided but nothing matched, keep all columns to avoid empty plot
+            if len(keep_cols) > 1:
+                grouped = grouped[keep_cols]
+
+        return grouped
     
     def _find_metric_column(self, df: pd.DataFrame) -> str:
         """Find the appropriate metric column in timeline data."""

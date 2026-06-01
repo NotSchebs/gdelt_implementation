@@ -63,6 +63,14 @@ class GdeltApp:
         )
         self.date_range_manager.update_entry_state()
         
+        # Active filters display (interactive)
+        self.filters_frame = tk.Frame(self.root)
+        self.filters_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+        tk.Label(self.filters_frame, text="Active Filters:", font=("Arial", 9)).pack(side=tk.LEFT)
+        self.filters_items_frame = tk.Frame(self.filters_frame)
+        self.filters_items_frame.pack(side=tk.LEFT, fill=tk.X, padx=(6,0))
+        self._update_filters_display()
+        
         self._setup_plot_area()
 
     def _setup_logger(self) -> Logger:
@@ -91,9 +99,42 @@ class GdeltApp:
         """Open filters window and allow selecting filters."""
         def on_apply(filters_dict):
             self.filters = filters_dict
+            self._update_filters_display()
             self.logger.log(f"Filters applied: countries={len(filters_dict.get('countries', []))}, languages={len(filters_dict.get('languages', []))}, groups={filters_dict.get('groups', [])}")
 
         FiltersWindow(self.root, initial_filters=self.filters, on_apply=on_apply)
+
+    def _update_filters_display(self) -> None:
+        """Update the active filters display label."""
+        countries = self.filters.get('countries', [])
+        languages = self.filters.get('languages', [])
+        groups = self.filters.get('groups', [])
+        
+        parts = []
+        if countries:
+            parts.append(f"Countries: {', '.join(countries)}")
+        if languages:
+            parts.append(f"Languages: {', '.join(languages)}")
+        if groups:
+            parts.append(f"Groups: {', '.join(groups)}")
+        
+        # rebuild interactive buttons
+        for w in self.filters_items_frame.winfo_children():
+            w.destroy()
+
+        def make_btn(text, cmd):
+            b = tk.Button(self.filters_items_frame, text=text, relief=tk.RIDGE, bd=1, padx=4, pady=2, command=cmd)
+            b.pack(side=tk.LEFT, padx=2)
+
+        if not parts:
+            tk.Label(self.filters_items_frame, text="None", fg="gray").pack(side=tk.LEFT)
+        else:
+            for iso in countries:
+                make_btn(f"{iso} ×", lambda v=iso: self._remove_filter('countries', v))
+            for code in languages:
+                make_btn(f"{code} ×", lambda v=code: self._remove_filter('languages', v))
+            for g in groups:
+                make_btn(f"{g} ×", lambda v=g: self._remove_filter('groups', v))
 
     # Analysis feature disabled
     # def _analysis_window(self) -> None:
@@ -180,4 +221,15 @@ class GdeltApp:
             keyword,
             self.root
         )
+
+    def _remove_filter(self, key: str, value: str) -> None:
+        """Remove a single filter value from current filters and refresh display."""
+        if value in self.filters.get(key, []):
+            self.filters[key].remove(value)
+            # also clear groups if removing countries causes group mismatch
+            if key == 'countries' and 'groups' in self.filters:
+                # drop any groups that are now empty overlap (leave as-is for simplicity)
+                pass
+            self.search_manager.filters = self.filters
+            self._update_filters_display()
 

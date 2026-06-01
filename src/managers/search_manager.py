@@ -43,13 +43,18 @@ class SearchManager:
 
             self._sleep_before_request(15, "timeline")
             self.logger.log(f"Calling GDELT API for {timeline_mode} data (this may take a while)...")
-            timeline_data = self.api_client.fetch_timeline(keyword, start_date, end_date, timeline_mode)
+            # pass through any selected country/language filters to the API
+            countries = getattr(self, 'filters', {}).get('countries', None)
+            languages = getattr(self, 'filters', {}).get('languages', None)
+            timeline_data = self.api_client.fetch_timeline(keyword, start_date, end_date, timeline_mode,
+                                                          countries=countries, languages=languages)
 
             if self.stop_event.is_set():
                 on_finished(False, "Search stopped by user.")
                 return
 
-            self.data_manager.timeline_df = self.data_manager.prepare_timeline_df(timeline_data, timeline_mode)
+            # pass filters to timeline preparation so we can post-filter breakdown columns
+            self.data_manager.timeline_df = self.data_manager.prepare_timeline_df(timeline_data, timeline_mode, getattr(self, 'filters', None))
 
             if fetch_articles:
                 self._fetch_articles(keyword, start_date, end_date, on_finished)
@@ -71,7 +76,10 @@ class SearchManager:
         try:
             self._sleep_before_request(20, "article list")
             self.logger.log("Calling GDELT API for article list (this may take a while)...")
-            articles = self.api_client.fetch_articles(keyword, start_date, end_date)
+            countries = getattr(self, 'filters', {}).get('countries', None)
+            languages = getattr(self, 'filters', {}).get('languages', None)
+            articles = self.api_client.fetch_articles(keyword, start_date, end_date,
+                                                      num_records=250, countries=countries, languages=languages)
 
             if self.stop_event.is_set():
                 on_finished(False, "Search stopped by user.")
