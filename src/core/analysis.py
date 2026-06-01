@@ -1,15 +1,10 @@
-class AnalysisWindow:
-    def __init__(self, parent):
-        self.window = tk.Toplevel(parent)
-        self.window.title("Analysis")
-        self.window.geometry("400x300")
+"""
+Analysis feature disabled.
 
-        self.window.transient(parent)
-        self.window.grab_set()
+The AnalysisWindow implementation has been commented out to disable
+analysis-related functionality per request.
 
-        self._build_ui()
+Original class removed.
+"""
+               self._build_ui()
 
-    def _build_ui(self):
-        tk.Label(self.window, text="Analysis Options", font=("Arial", 14)).pack(pady=10)
-
-       

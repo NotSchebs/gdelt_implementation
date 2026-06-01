@@ -8,7 +8,7 @@ from tkinter import messagebox
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-from src.core.analysis import AnalysisWindow
+# from src.core.analysis import AnalysisWindow
 
 from .gdelt_api import GdeltApiClient
 from .plotter import TimelinePlotter
@@ -38,6 +38,12 @@ class GdeltApp:
         self.export_manager = ExportManager(self.logger)
         self.search_manager = SearchManager(self.api_client, self.data_manager, 
                                            self.logger, self.dialog_manager)
+        # Filters state
+        self.filters = {
+            'countries': [],
+            'languages': [],
+            'groups': [],
+        }
         
         # Build UI
         self.control_panel = ControlPanelUI(
@@ -46,7 +52,7 @@ class GdeltApp:
             on_stop=self.stop_search,
             on_export=self.export_csv,
             on_filters=self._filters_window,
-            on_analyse=self._analysis_window,  # Placeholder for future analysis feature
+            # on_analyse=self._analysis_window,  # Analysis disabled
             on_time_span_change=self._on_time_span_change
         )
         
@@ -82,12 +88,17 @@ class GdeltApp:
         self.date_range_manager.update_entry_state()
 
     def _filters_window(self) -> None:
-        """Open filters window."""
-        FiltersWindow(self.root)
+        """Open filters window and allow selecting filters."""
+        def on_apply(filters_dict):
+            self.filters = filters_dict
+            self.logger.log(f"Filters applied: countries={len(filters_dict.get('countries', []))}, languages={len(filters_dict.get('languages', []))}, groups={filters_dict.get('groups', [])}")
 
-    def _analysis_window(self) -> None:
-        """Open analysis window."""
-        AnalysisWindow(self.root)
+        FiltersWindow(self.root, initial_filters=self.filters, on_apply=on_apply)
+
+    # Analysis feature disabled
+    # def _analysis_window(self) -> None:
+    #     """Open analysis window."""
+    #     AnalysisWindow(self.root)
 
     def start_search(self) -> None:
         """Validate input and start search."""
@@ -127,6 +138,8 @@ class GdeltApp:
 
         # Start search
         timeline_mode = self.control_panel.timeline_mode_var.get() or "timelinevol"
+        # apply current filters to search manager
+        self.search_manager.filters = self.filters
         self.search_manager.start_fetch(
             keyword, start_date, end_date, timeline_mode,
             self.control_panel.fetch_articles_var.get(),

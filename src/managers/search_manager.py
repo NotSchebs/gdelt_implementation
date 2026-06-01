@@ -81,8 +81,9 @@ class SearchManager:
                 self.data_manager.articles_df = pd.DataFrame()
                 on_finished(True, "Timeline fetched successfully, but no articles were returned.")
                 return
-
-            self.data_manager.articles_df = articles.copy()
+            # Apply article-level filters if present
+            filtered = self._apply_filters_to_articles(articles.copy())
+            self.data_manager.articles_df = filtered
             self.data_manager.enrich_articles_with_timeline(self.data_manager.articles_df)
             on_finished(True, "Timeline and article list fetched successfully.")
 
@@ -112,3 +113,49 @@ class SearchManager:
                 self.logger.log("Request cancelled before sending.")
                 return
             time.sleep(1)
+
+    def _apply_filters_to_articles(self, articles_df: pd.DataFrame) -> pd.DataFrame:
+        """Filter articles DataFrame in-place based on `self.filters` if provided.
+
+        Expected filters format: {'countries': [ISO,...], 'languages': [code,...]}
+        """
+        filters = getattr(self, 'filters', None)
+        if not filters:
+            return articles_df
+
+        df = articles_df
+
+        # Country filtering - try common column names
+        country_codes = [c.upper() for c in filters.get('countries', []) if c]
+        if country_codes:
+            country_cols = [c for c in df.columns if c.lower() in ('sourcecountry', 'source_country', 'country', 'countrycode', 'iso')]
+            if country_cols:
+                combined = pd.Series([False] * len(df))
+                for col in country_cols:
+                    combined = combined | df[col].astype(str).str.upper().isin(country_codes)
+                df = df[combined]
+            else:
+                # try searching in any string column for country ISO or name
+                combined = pd.Series([False] * len(df))
+                for col in df.select_dtypes(include=['object']):
+                    combined = combined | df[col].astype(str).str.upper().isin(country_codes)
+                df = df[combined]
+
+        # Language filtering - common column names
+        lang_codes = [l.lower() for l in filters.get('languages', []) if l]
+        if lang_codes:
+            lang_cols = [c for c in df.columns if c.lower() in ('language', 'lang', 'languagecode')]
+            if lang_cols:
+                combined = pd.Series([False] * len(df))
+                for col in lang_cols:
+                    combined = combined | df[col].astype(str).str.lower().isin(lang_codes)
+                df = df[combined]
+            else:
+                # try searching any string column
+                combined = pd.Series([False] * len(df))
+                for col in df.select_dtypes(include=['object']):
+                    combined = combined | df[col].astype(str).str.lower().isin(lang_codes)
+                df = df[combined]
+
+        self.logger.log(f"Applied filters: countries={len(country_codes)}, languages={len(lang_codes)}; resulting articles={len(df)}")
+        return df

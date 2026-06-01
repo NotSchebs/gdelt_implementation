@@ -13,14 +13,13 @@ class ControlPanelUI:
     """Builds and manages the control panel UI."""
     
     def __init__(self, root: tk.Tk, on_search: Callable, on_stop: Callable, 
-                 on_export: Callable, on_filters: Callable, on_analyse: Callable,
+                 on_export: Callable, on_filters: Callable,
                  on_time_span_change: Callable):
         self.root = root
         self.on_search = on_search
         self.on_stop = on_stop
         self.on_export = on_export
         self.on_filters = on_filters
-        self.on_analyse = on_analyse 
         self.on_time_span_change = on_time_span_change
         
         # UI elements
@@ -151,39 +150,7 @@ class ControlPanelUI:
             "country, tone, and metadata."
         )
 
-        # Analyse button 
-        analyse_frame = tk.Frame(control_frame)
-        analyse_frame.grid(row=5, column=0, columnspan=2, pady=(15, 0))
-
-        analyse_btn = tk.Button(
-            analyse_frame,
-            text="Analyse",
-            command=self.on_analyse,
-            width=28,
-            height=2,
-            font=("Arial", 11, "bold")
-        )
-
-        analyse_btn.pack(side=tk.LEFT)
-
-        analyse_help = tk.Label(
-            analyse_frame,
-            text="ⓘ",
-            fg="white",
-            cursor="hand2",
-            font=("Arial", 10, "bold")
-        )
-
-        analyse_help.pack(side=tk.LEFT, padx=(8, 0))
-
-        ToolTip(
-            analyse_help,
-            "Run deeper analysis on the\n"
-            "returned GDELT data.\n\n"
-            "Includes trends, sentiment,\n"
-            "patterns, and statistics."
-        )
-
+        # Analyse UI removed — feature disabled
         # Search/Stop/Export buttons
         btn_frame = tk.Frame(control_frame)
         btn_frame.grid(row=0, column=1, rowspan=1, padx=10)
